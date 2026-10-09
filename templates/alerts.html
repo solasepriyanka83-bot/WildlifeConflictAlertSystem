@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Alerts{% endblock %}
+{% block page_title %}Emergency Alert Screen{% endblock %}
+{% block page_sub %}Auto-refreshes every 5 seconds{% endblock %}
+
+{% block content %}
+<div id="alertWrap">
+{% if latest %}
+  <div class="alert-banner {{ latest.threat_level }}" id="alertBanner">
+    <div class="siren">🚨</div>
+    <h2 id="alertTitle">{{ latest.animal_name|upper }} DETECTED</h2>
+    <p id="alertConf">Confidence: {{ latest.confidence }}%</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="glass card-pad">
+      <img id="alertImg" src="{{ url_for('static', filename='images/detections/' ~ latest.image_name) }}" style="width:100%; border-radius:12px; margin-bottom:14px;" alt="alert capture">
+      <div class="threat-box {{ latest.threat_level }}" id="alertThreatBox">
+        {% if latest.threat_level == 'High' %}🔴 High Risk{% elif latest.threat_level == 'Medium' %}🟡 Medium Risk{% else %}🟢 Safe{% endif %}
+      </div>
+    </div>
+    <div class="glass card-pad">
+      <h3 style="margin-top:0;">Detection Details</h3>
+      <div id="alertDetails">
+        <div class="detail-row"><span class="k">Date</span><span class="v">{{ latest.date_time.split(' ')[0] }}</span></div>
+        <div class="detail-row"><span class="k">Time</span><span class="v">{{ latest.date_time.split(' ')[1] }}</span></div>
+        <div class="detail-row"><span class="k">Location</span><span class="v">{{ latest.location }}</span></div>
+      </div>
+      <a href="{{ url_for('history') }}" class="btn" style="margin-top:18px;">View History</a>
+    </div>
+  </div>
+{% else %}
+  <div class="glass empty-state">
+    <div class="ic">🟢</div>
+    No active alerts. All quiet on the perimeter.
+  </div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function refreshAlert() {
+  const res = await fetch("{{ url_for('api_latest_detection') }}");
+  const data = await res.json();
+  if (!data.exists) return;
+
+  document.getElementById('alertTitle') && (document.getElementById('alertTitle').textContent = data.animal_name.toUpperCase() + " DETECTED");
+  document.getElementById('alertConf') && (document.getElementById('alertConf').textContent = "Confidence: " + data.confidence + "%");
+  const img = document.getElementById('alertImg');
+  if (img) img.src = "/static/images/detections/" + data.image_name + "?t=" + Date.now();
+
+  const banner = document.getElementById('alertBanner');
+  if (banner) banner.className = "alert-banner " + data.threat_level;
+
+  const threatBox = document.getElementById('alertThreatBox');
+  if (threatBox) {
+    threatBox.className = "threat-box " + data.threat_level;
+    threatBox.textContent = data.threat_level === "High" ? "🔴 High Risk" : data.threat_level === "Medium" ? "🟡 Medium Risk" : "🟢 Safe";
+  }
+}
+setInterval(refreshAlert, 5000);
+</script>
+{% endblock %}

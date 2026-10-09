@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Live Status{% endblock %}
+{% block page_title %}Live Status{% endblock %}
+{% block page_sub %}Monitoring center — auto-refreshes every 5 seconds{% endblock %}
+
+{% block content %}
+<div class="live-grid">
+  <div class="glass" style="padding:16px;">
+    <div class="cam-frame" id="camFrame">
+      <div class="live-tag"><span class="rec-dot"></span> LIVE</div>
+      {% if latest %}
+        <img id="camImg" src="{{ url_for('static', filename='images/detections/' ~ latest.image_name) }}" alt="latest capture">
+      {% else %}
+        <div class="no-feed" id="camImg">No capture yet.<br>Simulate a PIR trigger below.</div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" style="width:auto;" onclick="simulateDetection()">📸 Simulate PIR Trigger + Capture</button>
+      <a class="btn btn-ghost" style="width:auto;" href="{{ url_for('history') }}">View Full History</a>
+    </div>
+    <p style="color:var(--text-dim); font-size:12px; margin-top:10px;">
+      In production, this frame is pushed by the ESP32-CAM POSTing to <code>/api/detect</code> whenever the PIR sensor fires.
+    </p>
+  </div>
+
+  <div>
+    <div class="glass card-pad mb-16">
+      <h3 style="margin-top:0;">Detection Details</h3>
+      <div id="detailBlock">
+        {% if latest %}
+        <div class="detail-row"><span class="k">Animal Name</span><span class="v" style="text-transform:capitalize;">{{ latest.animal_name }}</span></div>
+        <div class="detail-row"><span class="k">Confidence</span><span class="v">{{ latest.confidence }}%</span></div>
+        <div class="detail-row"><span class="k">Date</span><span class="v">{{ latest.date_time.split(' ')[0] }}</span></div>
+        <div class="detail-row"><span class="k">Time</span><span class="v">{{ latest.date_time.split(' ')[1] }}</span></div>
+        <div class="detail-row"><span class="k">Location</span><span class="v">{{ latest.location }}</span></div>
+        {% else %}
+        <p style="color:var(--text-dim); font-size:13px;">No detection data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="glass card-pad mb-16">
+      <h3 style="margin-top:0;">System Status</h3>
+      <div class="status-row">
+        <div class="pill"><span class="led green"></span> Camera Online</div>
+        <div class="pill"><span class="led green"></span> AI Running</div>
+        <div class="pill"><span class="led green"></span> Database Connected</div>
+        <div class="pill"><span class="led green"></span> Detection Active</div>
+      </div>
+    </div>
+
+    <div class="glass card-pad">
+      <h3 style="margin-top:0;">Threat Level</h3>
+      <div id="threatBlock" class="threat-box {{ latest.threat_level if latest else 'Low' }}">
+        {% if latest %}
+          {% if latest.threat_level == 'High' %}🔴 High Threat
+          {% elif latest.threat_level == 'Medium' %}🟡 Medium Threat
+          {% else %}🟢 Low Threat{% endif %}
+        {% else %}🟢 No Active Threat{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function simulateDetection() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Capturing...";
+  try {
+    const res = await fetch("{{ url_for('api_detect') }}", { method: "POST", body: new FormData() });
+    const data = await res.json();
+    if (data.success) {
+      refreshLatest();
+    }
+  } catch (e) { console.error(e); }
+  btn.disabled = false;
+  btn.textContent = "📸 Simulate PIR Trigger + Capture";
+}
+
+async function refreshLatest() {
+  const res = await fetch("{{ url_for('api_latest_detection') }}");
+  const data = await res.json();
+  if (!data.exists) return;
+
+  const camFrame = document.getElementById('camFrame');
+  let img = document.getElementById('camImg');
+  const imgUrl = "/static/images/detections/" + data.image_name + "?t=" + Date.now();
+
+  if (img.tagName !== "IMG") {
+    img.remove();
+    const newImg = document.createElement("img");
+    newImg.id = "camImg";
+    camFrame.appendChild(newImg);
+    img = newImg;
+  }
+  img.src = imgUrl;
+
+  document.getElementById('detailBlock').innerHTML = `
+    <div class="detail-row"><span class="k">Animal Name</span><span class="v" style="text-transform:capitalize;">${data.animal_name}</span></div>
+    <div class="detail-row"><span class="k">Confidence</span><span class="v">${data.confidence}%</span></div>
+    <div class="detail-row"><span class="k">Date</span><span class="v">${data.date_time.split(' ')[0]}</span></div>
+    <div class="detail-row"><span class="k">Time</span><span class="v">${data.date_time.split(' ')[1]}</span></div>
+    <div class="detail-row"><span class="k">Location</span><span class="v">${data.location}</span></div>
+  `;
+
+  const threatBlock = document.getElementById('threatBlock');
+  threatBlock.className = "threat-box " + data.threat_level;
+  const label = data.threat_level === "High" ? "🔴 High Threat" : data.threat_level === "Medium" ? "🟡 Medium Threat" : "🟢 Low Threat";
+  threatBlock.textContent = label;
+}
+
+setInterval(refreshLatest, 5000);
+</script>
+{% endblock %}

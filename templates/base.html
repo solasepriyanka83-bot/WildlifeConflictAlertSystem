@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}WildSense{% endblock %} | Wildlife Conflict Alert System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <h1>WildSense</h1>
+        <span>AI FOREST CONTROL ROOM</span>
+      </div>
+    </div>
+
+    <nav>
+      <a class="nav-link {% if active=='dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><span class="ic">🏠</span> Dashboard</a>
+      <a class="nav-link {% if active=='live_status' %}active{% endif %}" href="{{ url_for('live_status') }}"><span class="ic">📡</span> Live Status</a>
+      <a class="nav-link {% if active=='alerts' %}active{% endif %}" href="{{ url_for('alerts') }}"><span class="ic">🚨</span> Alerts</a>
+      <a class="nav-link {% if active=='records' %}active{% endif %}" href="{{ url_for('records') }}"><span class="ic">📋</span> Detection Records</a>
+      <a class="nav-link {% if active=='gallery' %}active{% endif %}" href="{{ url_for('gallery') }}"><span class="ic">🖼️</span> Gallery</a>
+      <a class="nav-link {% if active=='history' %}active{% endif %}" href="{{ url_for('history') }}"><span class="ic">🕘</span> History</a>
+      <a class="nav-link {% if active=='reports' %}active{% endif %}" href="{{ url_for('reports') }}"><span class="ic">📊</span> Reports</a>
+      {% if session.get('role') == 'admin' %}
+      <a class="nav-link {% if active=='register' %}active{% endif %}" href="{{ url_for('register') }}"><span class="ic">👤</span> Manage Users</a>
+      {% endif %}
+    </nav>
+
+    <div class="logout-box">
+      <a class="btn btn-ghost" href="{{ url_for('logout') }}">⏻ Logout</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+        <p>{% block page_sub %}Overview of wildlife activity{% endblock %}</p>
+      </div>
+      <div class="user-chip">
+        <div class="avatar">{{ session.get('fullname','U')[0]|upper }}</div>
+        <div>
+          <div style="font-weight:600;">{{ session.get('fullname','User') }}</div>
+          <div style="font-size:11px; color: var(--text-dim); text-transform:capitalize;">{{ session.get('role','user') }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

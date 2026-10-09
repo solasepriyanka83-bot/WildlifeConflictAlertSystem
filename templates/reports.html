@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+{% block page_sub %}Detection trends and exportable summaries{% endblock %}
+
+{% block content %}
+<div class="grid grid-4 mb-16">
+  <div class="glass stat-card">
+    <div class="ic-badge">📊</div>
+    <p class="value">{{ stats.total }}</p>
+    <p class="label">Total Detections</p>
+  </div>
+  <div class="glass stat-card danger">
+    <div class="ic-badge">⚠️</div>
+    <p class="value">{{ stats.high_risk }}</p>
+    <p class="label">High Risk Count</p>
+  </div>
+  <div class="glass stat-card">
+    <div class="ic-badge">🐾</div>
+    <p class="value">{{ stats.unique_animals }}</p>
+    <p class="label">Unique Animals</p>
+  </div>
+  <div class="glass stat-card">
+    <div class="ic-badge">🏆</div>
+    <p class="value" style="font-size:18px; text-transform:capitalize;">{{ animal_freq[0].animal_name if animal_freq else '—' }}</p>
+    <p class="label">Most Detected</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="glass chart-box">
+    <h3>Animal Detection Frequency</h3>
+    {% set max_count = animal_freq[0].count if animal_freq else 1 %}
+    {% for a in animal_freq %}
+    <div class="bar-row">
+      <div class="name">{{ a.animal_name }}</div>
+      <div class="bar-track"><div class="bar-fill" style="width: {{ (a.count / max_count * 100)|round(0) }}%;"></div></div>
+      <div class="count">{{ a.count }}</div>
+    </div>
+    {% else %}
+    <p style="color:var(--text-dim); font-size:13px;">No data yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="glass chart-box">
+    <h3>Threat Distribution</h3>
+    {% set tmax = threat_dist|map(attribute='count')|max if threat_dist else 1 %}
+    {% for t in threat_dist %}
+    <div class="bar-row">
+      <div class="name">{{ t.threat_level }}</div>
+      <div class="bar-track"><div class="bar-fill" style="width: {{ (t.count / tmax * 100)|round(0) }}%;"></div></div>
+      <div class="count">{{ t.count }}</div>
+    </div>
+    {% else %}
+    <p style="color:var(--text-dim); font-size:13px;">No data yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="glass chart-box" style="margin-top:18px;">
+  <h3>Daily Detection Trend (last 7 days)</h3>
+  {% set dmax = daily_trend|map(attribute='count')|max if daily_trend else 1 %}
+  {% for d in daily_trend %}
+  <div class="bar-row">
+    <div class="name">{{ d.day }}</div>
+    <div class="bar-track"><div class="bar-fill" style="width: {{ (d.count / dmax * 100)|round(0) }}%;"></div></div>
+    <div class="count">{{ d.count }}</div>
+  </div>
+  {% else %}
+  <p style="color:var(--text-dim); font-size:13px;">No data in the last 7 days.</p>
+  {% endfor %}
+</div>
+
+<div class="glass card-pad" style="margin-top:18px; text-align:center;">
+  <h3 style="margin-top:0;">Export Full Report</h3>
+  <p style="color:var(--text-dim); font-size:13px;">Download a PDF summary with stats, charts data, and recent detections.</p>
+  <a class="btn" style="width:auto; display:inline-flex;" href="{{ url_for('download_pdf') }}">⬇ Download PDF Report</a>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Real-time overview of forest perimeter activity{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-4 mb-16">
+  <div class="glass stat-card">
+    <div class="ic-badge">📊</div>
+    <p class="value">{{ stats.total }}</p>
+    <p class="label">Total Detections</p>
+  </div>
+  <div class="glass stat-card">
+    <div class="ic-badge">📅</div>
+    <p class="value">{{ stats.today }}</p>
+    <p class="label">Today's Detections</p>
+  </div>
+  <div class="glass stat-card danger">
+    <div class="ic-badge">⚠️</div>
+    <p class="value">{{ stats.high_risk }}</p>
+    <p class="label">High Risk Detections</p>
+  </div>
+  <div class="glass stat-card">
+    <div class="ic-badge">🐾</div>
+    <p class="value">{{ stats.unique_animals }}</p>
+    <p class="label">Unique Animals</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="glass card-pad">
+    <div class="flex-between mb-16">
+      <h3 style="margin:0;">Latest Detection</h3>
+      {% if latest %}<span class="badge {{ latest.threat_level }}">{{ latest.threat_level }} Risk</span>{% endif %}
+    </div>
+    {% if latest %}
+      <img class="thumb" style="width:100%; height:180px; border-radius:12px;" src="{{ url_for('static', filename='images/detections/' ~ latest.image_name) }}" alt="latest detection">
+      <div class="detail-row"><span class="k">Animal</span><span class="v" style="text-transform:capitalize;">{{ latest.animal_name }}</span></div>
+      <div class="detail-row"><span class="k">Confidence</span><span class="v">{{ latest.confidence }}%</span></div>
+      <div class="detail-row"><span class="k">Date / Time</span><span class="v">{{ latest.date_time }}</span></div>
+      <div class="detail-row"><span class="k">Location</span><span class="v">{{ latest.location }}</span></div>
+    {% else %}
+      <div class="empty-state">
+        <div class="ic">📷</div>
+        No detections yet. Trigger one from Live Status.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="glass card-pad">
+    <h3 style="margin-top:0;">System Alert Status</h3>
+    <div class="status-row">
+      <div class="pill"><span class="led green"></span> Camera Online</div>
+      <div class="pill"><span class="led green"></span> AI Engine Running</div>
+      <div class="pill"><span class="led green"></span> Database Connected</div>
+      <div class="pill"><span class="led green"></span> Detection Active</div>
+    </div>
+    <p style="color:var(--text-dim); font-size:13px; margin-top:18px;">
+      This panel mirrors the sensor + AI pipeline status shown on the Live Status screen.
+      Use <strong>Live Status</strong> to simulate a PIR-triggered ESP32-CAM capture end-to-end.
+    </p>
+    <a href="{{ url_for('live_status') }}" class="btn" style="width:auto; display:inline-flex; margin-top:6px;">Go to Live Status →</a>
+  </div>
+</div>
+
+{% endblock %}

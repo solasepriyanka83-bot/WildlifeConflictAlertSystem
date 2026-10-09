@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Detection Records{% endblock %}
+{% block page_title %}Detection Records{% endblock %}
+{% block page_sub %}Full searchable log of every detection event{% endblock %}
+
+{% block content %}
+<div class="glass card-pad">
+  <form method="GET" class="toolbar">
+    <input type="text" name="q" placeholder="Search animal or location..." value="{{ search }}">
+    <select name="animal">
+      <option value="">All Animals</option>
+      {% for a in animals %}
+        <option value="{{ a }}" {% if a == animal_filter %}selected{% endif %}>{{ a|capitalize }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" style="width:auto;" type="submit">Filter</button>
+    <a class="btn btn-ghost" style="width:auto;" href="{{ url_for('export_csv') }}">⬇ Download CSV</a>
+  </form>
+
+  {% if rows %}
+  <table class="data-table">
+    <thead>
+      <tr><th>Image</th><th>Animal</th><th>Confidence</th><th>Date Time</th><th>Location</th><th>Threat</th></tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><img class="thumb" src="{{ url_for('static', filename='images/detections/' ~ r.image_name) }}" alt=""></td>
+        <td style="text-transform:capitalize;">{{ r.animal_name }}</td>
+        <td>{{ r.confidence }}%</td>
+        <td>{{ r.date_time }}</td>
+        <td>{{ r.location }}</td>
+        <td><span class="badge {{ r.threat_level }}">{{ r.threat_level }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% for p in range(1, total_pages+1) %}
+      {% if p == page %}
+        <span class="current">{{ p }}</span>
+      {% else %}
+        <a href="?q={{ search }}&animal={{ animal_filter }}&page={{ p }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="ic">📋</div>
+    No records match your search.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

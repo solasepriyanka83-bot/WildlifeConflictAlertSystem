@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block page_title %}Detection History{% endblock %}
+{% block page_sub %}Complete chronological log, latest first{% endblock %}
+
+{% block content %}
+<div class="glass card-pad">
+  <form method="GET" class="toolbar">
+    <input type="text" name="q" placeholder="Search animal or location..." value="{{ search }}">
+    <button class="btn" style="width:auto;" type="submit">Search</button>
+  </form>
+
+  {% if rows %}
+  <table class="data-table">
+    <thead><tr><th>Animal</th><th>Confidence</th><th>Date Time</th><th>Location</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td style="text-transform:capitalize;">{{ r.animal_name }}</td>
+        <td>{{ r.confidence }}%</td>
+        <td>{{ r.date_time }}</td>
+        <td>{{ r.location }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><div class="ic">🕘</div>No history found.</div>
+  {% endif %}
+</div>
+{% endblock %}

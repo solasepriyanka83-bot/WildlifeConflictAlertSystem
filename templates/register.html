@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+{% block page_sub %}Create new operator / admin accounts{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+  <div class="glass card-pad">
+    <h3 style="margin-top:0;">Create New User</h3>
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" name="fullname" placeholder="Ranger John Doe" required>
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="user@wildsense.com" required>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select name="role">
+          <option value="user">Operator (user)</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Minimum 6 characters" required>
+      </div>
+      <div class="field">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" placeholder="Re-enter password" required>
+      </div>
+      <button type="submit" class="btn">➕ Create Account</button>
+    </form>
+  </div>
+
+  <div class="glass card-pad">
+    <h3 style="margin-top:0;">Security Notes</h3>
+    <ul style="color:var(--text-dim); font-size:13.5px; line-height:1.9;">
+      <li>Only logged-in admins can reach this page — enforced server-side.</li>
+      <li>Passwords are stored as salted hashes (Werkzeug), never in plain text.</li>
+      <li>All dashboard routes require an active session (<code>@login_required</code>).</li>
+      <li>Email format and password length are validated before account creation.</li>
+      <li>Sessions are cleared completely on logout.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
